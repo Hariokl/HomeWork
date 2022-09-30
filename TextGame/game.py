@@ -19,17 +19,79 @@ class Monster:
     base = {'hp': 5, 'cards': ['11002'], 'mcg': 3}
 
     def __init__(self):
-        self.hp = Monster.base['hp']
+        self.hp = Monster.base['hp'] * 1.2**room_n
         self.cards = Monster.base['cards']
         self.mcg = Monster.base['mcg']
 
 
+def make_choice(spisok):
+    for i, x in enumerate(spisok):
+        print(f"{i+1}.{x}")
+    print()
+    return input('>>').lower()
+
 player = Player()
 monster = None
 room_status = 'бой'
+game_status = 'in_menu'
 turn = 1, 0
 room_n = 1
 while True:
+    print('\n' * 10)
+    if game_status == 'in_menu':
+        print('Меню')
+        choice = make_choice(['Играть', 'Правила', 'Настройки'])
+        print('\n'*3)
+        if choice in ['1', '2', '3', 'и', 'п', 'н']:
+            if choice in ['1', 'и']:
+                game_status = 'game'
+            elif choice in ['2', 'п']:
+                game_status = 'rules'
+            elif choice in ['3', 'н']:
+                game_status = 'settings'
+        continue
+    if game_status == 'rules':
+        print('Правила')
+        print('Игрок может сходить от 2 до 3 раз за ход.')
+        print('В игре есть Артефакты и Карты.')
+        print('Карты')
+        print('Карты - это активные умения.')
+        print('Карты ты используешь для атаки/лечения/баффа/дебаффа себя или врага.')
+        print('Карты можно получить с монстров')
+        print('Артефакты')
+        print('Артефакты - это пассивные умения.')
+        print('Артефакты используются/активны всегда. Вне битвы и в битве.')
+        print('Артефакты можно получить получая с монстров.')
+
+        choice = make_choice(['Назад'])
+        if choice == '1':
+            game_status = 'in_menu'
+        continue
+    if game_status == 'settings':
+        print('Настройки')
+        choice = make_choice(['Уровень сложности', 'Выход из игры', 'Назад'])
+        if choice in ['1', '2', '3', 'у', 'в', 'н']:
+            if choice in ['1', 'у']:
+                game_status = 'change_difficulty'
+            elif choice in ['2', 'в']:
+                exit()
+            elif choice in ['3', 'н']:
+                game_status = 'in_menu'
+        continue
+    if game_status == 'change_difficulty':
+        print('Смена сложности')
+        choice = make_choice(['Обычная', 'Сложная', 'Ад', 'Назад'])
+        if choice in ['1', '2', '3', '4', 'о', 'с', 'а', 'н']:
+            if choice in ['1', 'о']:
+                game_difficulty = 1
+            elif choice in ['2', 'с']:
+                game_difficulty = 2
+            elif choice in ['3', 'а']:
+                game_difficulty = 3
+            elif choice in ['4', 'н']:
+                game_status = 'in_menu'
+        continue
+
     if room_status == 'бой':
         if turn[0] == 1:
             monster = Monster()
