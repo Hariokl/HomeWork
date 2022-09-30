@@ -1,11 +1,11 @@
 class Player:
-    base = {'hp': 10, 'cards': ['11003'], 'mcg': 3, 'all_cards': ['11003']}
+    base = {'hp': 10, 'cards': ['11003', '11010'], 'mcg': 3, 'all_cards': ['11003']}
     # mcg - max cards in game
     # В cards первая цифра - на кого действует(1 - на врага, 2 - на себя).
     # Вторая цифра - если первая 1, то урон если 1 и дебафф если 0; если первая 0, то лечение если 1,
     # и бафф если 0.
-    # Третья есть ли перезарядка(цифра-перезарядка навыка) или нет(0)
-    # Четвёртая цифра - какой именно бафф(Усиление, Доп ход) / дебафф(0 - если это не дебаф или баф)
+    # Третья цифра - какой именно бафф(Усиление, Доп ход) / дебафф(0 - если это не дебаф или баф)
+    # Четвёртая есть ли перезарядка(цифра-перезарядка навыка) или нет(0)
     # Пятая цифра - на сколько урон/лечение/бафф/дебафф
 
     def __init__(self):
@@ -13,28 +13,59 @@ class Player:
         self.cards = Player.base['cards']
         self.mcg = Player.base['mcg']
         self.all_cards = Player.base['all_cards']
+        self.cards_in_reload = []
+
+    def turn(self):
+        print('Ваша очередь')
+        choice = make_choice(self.cards)
+        if choice in [str(x + 1) for x in range(len(self.cards))]:
+            self.understand_and_play(self.cards[int(choice)-1], int(choice) - 1)
+
+    def understand_and_play(self, card, id):
+        if card[:3] == '110':
+            pass
+        elif card[:3] == '001':
+            pass
+        self.cards_in_reload.append((id, int(card[3])))
+        for i, x in enumerate(self.cards_in_reload):
+            x = x[0], x[1] - 1
+            self.cards_in_reload[i] = x
+            if x[1] < 0:
+                self.cards_in_reload.remove(x)
+        print(self.cards_in_reload)
+        monster.hp -= int(card[4:])
+
+    def translate(self, card):
+        pass
 
 
 class Monster:
     base = {'hp': 5, 'cards': ['11002'], 'mcg': 3}
 
     def __init__(self):
-        self.hp = Monster.base['hp'] * 1.2**room_n
+        self.hp = Monster.base['hp'] * float(f"1.{game_difficulty+2}")**room_n
         self.cards = Monster.base['cards']
         self.mcg = Monster.base['mcg']
 
+    def turn(self):
+        print('Очередь монстра')
+        print(self.hp)
+        make_choice()
 
-def make_choice(spisok):
+
+def make_choice(spisok=[]):
     for i, x in enumerate(spisok):
         print(f"{i+1}.{x}")
     print()
     return input('>>').lower()
 
+
 player = Player()
 monster = None
 room_status = 'бой'
 game_status = 'in_menu'
-turn = 1, 0
+game_difficulty = 1
+nturn = 1, 0
 room_n = 1
 while True:
     print('\n' * 10)
@@ -45,6 +76,7 @@ while True:
         if choice in ['1', '2', '3', 'и', 'п', 'н']:
             if choice in ['1', 'и']:
                 game_status = 'game'
+                room_status = 'entered'
             elif choice in ['2', 'п']:
                 game_status = 'rules'
             elif choice in ['3', 'н']:
@@ -91,11 +123,21 @@ while True:
             elif choice in ['4', 'н']:
                 game_status = 'in_menu'
         continue
-
-    if room_status == 'бой':
-        if turn[0] == 1:
+    if room_status == 'entered':
+        print('Вы находитесь в комнате с монстром Слайм')
+        choice = make_choice(['Атаковать'])
+        if choice in ['1', 'а']:
+            if choice in ['1', 'а']:
+                room_status = 'fight'
+        continue
+    if room_status == 'fight':
+        if nturn[0] == 1:
             monster = Monster()
-        if turn[1] == 0:
+        if nturn[1] == 0:
             player.turn()
-        if turn[1] == 1:
+            nturn = nturn[0], 1
+        if nturn[1] == 1:
             monster.turn()
+            nturn = nturn[0] + 1, 0
+        continue
+        
