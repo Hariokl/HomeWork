@@ -1,204 +1,331 @@
-from random import choice
 from time import sleep
 
-status = "choose_room"
-room_n = 0
-boss_room = 10
-m_name = 'монстр'
 
-rooms_choices = {"Комната с монстром": 1, "Неизвестная комната": 2}
-player_n = {"max_hp": 20, 'hp': 20, 'dmg': 5, "heal": 2}
-monster_prototype_n = {"max_hp": 5, 'hp': 5, 'dmg': 2, 'heal': 2}
-player = {"max_hp": 20, 'hp': 20, 'dmg': 5, "heal": 2}
-monster_prototype = {"max_hp": 5, 'hp': 5, 'dmg': 2, 'heal': 2}
-monster = monster_prototype.copy()
-monster_killed = False
+class Player:
+    base = {'hp': 10, 'mana': 5, 'cards': ['11003', '11010', '00223'], 'mcg': 3, 'all_cards': ['11003', '11010']}
+    # mcg - max cards in game
+    # В cards первая цифра - на кого действует(1 - на врага, 0 - на себя).
+    # Вторая цифра - если первая 1, то урон если 1 и дебафф если 0; если первая 0, то лечение если 1,
+    # и бафф если 0.
+    # Третья цифра - какой именно бафф(Усиление, Доп ход) / дебафф(0 - если это не дебаф или баф)
+    # Четвёртая есть ли перезарядка(цифра-перезарядка навыка) или нет(0)
+    # Пятая цифра - на сколько урон/лечение/бафф/дебафф
 
+    def __init__(self):
+        self.hp = Player.base['hp']
+        self.lvl = 1
+        self.max_hp = Player.base['hp']
+        self.mana = Player.base['mana']
+        self.cards = Player.base['cards']
+        self.mcg = Player.base['mcg']
+        self.all_cards = Player.base['all_cards']
+        self.cards_in_reload = []
+        self.status = []
+
+    def turn(self):
+        print('Ваша очередь')
+        print(self.hp)
+
+        check_hp(self)
+
+        k = update_status(self)
+        if k == 0:
+            return
+
+        check_hp(self)
+        while True:
+            if monster.hp <= 0:
+                return
+            choice = self.make_choice([self.make_beautiful(translate(x), x) for x in self.cards])
+            while choice != '0':
+                if choice in [str(x + 1) for x in range(len(self.cards))] and choice.isdigit():
+                    if (int(choice) - 1) not in [x[0] for x in self.cards_in_reload]:
+                        break
+                choice = input('>>').lower()
+            if choice == '0':
+                break
+            card = self.cards[int(choice)-1]
+            understand_and_play(self, monster, card)
+
+            self.cards_in_reload.append((int(choice) - 1, int(card[3])))
+        cards_in_reload = []
+        for i, x in enumerate(self.cards_in_reload):
+            x = x[0], x[1] - 1
+            if x[1] >= 0:
+                cards_in_reload.append(x)
+        else:
+            self.cards_in_reload = cards_in_reload
+
+    def make_beautiful(self, card, cart):
+        bol = None
+        stc = 2
+        t = 0
+        for y in self.cards_in_reload:
+            if y[0] == self.cards.index(cart):
+                bol = y
+                stc = 1
+                t = 1
+                break
+        st = tcolor('='*20, stc)+'\n'
+        for x in card.split('/'):
+            r = x
+            r = tcolor('||', stc) + ' '*((18-len(x))//2) + r + ' '*(
+                    (18-len(x))//2+(18-len(x))%2) + tcolor('||', stc) + '\n'
+            st += r
+        if bol is not None:
+            r = f'На перез.:{bol[1]}'
+            st += tcolor('||', stc) + ' ' * ((18 - len(r)) // 2) + r + ' ' * (
+                        (18 - len(r)) // 2 + (18 - len(r)) % 2) + tcolor('||', stc) + '\n'
+
+        st += (tcolor('||', stc) + ' '*18 + tcolor('||', stc) + '\n') * (3-len(card.split('/'))-t)
+        st += tcolor('='*22, stc)
+
+        return st
+
+    def make_choice(self, opt):
+        st = ''
+        for i in range(5):
+            r = ''
+            for j, x in enumerate(opt):
+                if i == 0:
+                    r += f'{j+1}.'
+                r += x.split('\n')[i] + ' '*4
+            st += r + '\n'
+        print(st)
+        return input('>>')
+
+
+class Monster:
+    base = {'hp': 5, 'cards': ['11002'], 'mcg': 3}
+
+    def __init__(self):
+        self.hp = Monster.base['hp'] * float(f"1.{game_difficulty+2}")**room_n
+        self.max_hp = self.hp
+        self.cards = Monster.base['cards']
+        self.cards_in_reload = []
+        self.status = []
+        self.mcg = Monster.base['mcg']
+
+    def turn(self):
+        global monster
+        print(self.hp)
+        print('Очередь монстра')
+
+        check_hp(self)
+        if monster is None:
+            return
+
+        k = update_status(self)
+        if k == 0:
+            return
+
+        check_hp(self)
+        if monster is None:
+            return
+
+        self.make_choice()
+
+        cards_in_reload = []
+        for i, x in enumerate(self.cards_in_reload):
+            x = x[0], x[1] - 1
+            if x[1] >= 0:
+                cards_in_reload.append(x)
+        else:
+            self.cards_in_reload = cards_in_reload
+
+    def make_choice(self):
+        for i, x in enumerate(self.cards):
+            if i not in [y[0] for y in self.cards_in_reload]:
+                understand_and_play(self, player, x)
+                self.cards_in_reload.append((int(choice) - 1, int(x[3])))
+                r = translate_to_fight('Монстр', 'Вы', x, ['', 'и'])
+                print(r[0] + '.', r[1])
+                sleep(2)
+
+
+def translate_to_fight(who, whom, card, te=[]):
+    st = f'{who} использует{te[0]} карту'
+    if card[:3] == '110':
+        return f'{st} атаки', f'\n{whom} потерял{te[1]} {card[4:]}хп'
+    if card[:3] == '010':
+        return f'{st} лечения', f'\n{who} вылечил{te[0]} {card[4:]}хп'
+    if card[:3] == '111':
+        return f'{st} вампиризма', f"\n{whom} потерял{te[1]} {card[4:]}хп\n{who} вылечил{te[0]} {card[4:]}хп"
+
+
+def tcolor(ob, ind):
+    return f"\x1b[3{ind}m{ob}\x1b[0m"
+
+
+def update_status(self):
+    stop = False
+    for i, status in enumerate(self.status):
+        if status[0] == '1':
+            if status[1] == '1':  # заморозка
+                print('Заморожен...')
+                print('Пропускает ход...')
+                stop = True
+            if status[1] == '2':  # горение
+                self.hp -= (self.max_hp // 10 + 1)
+        if status[0] == '0':
+            if status[1] == '1':  # исцеление
+                self.hp = min(self.hp + self.max_hp // 5, self.max_hp)
+            if status[1] == '2':  # снятие всех эффектов
+                self.status = []
+
+    for i, status in enumerate(self.status):
+        self.status[i] = status[0] + status[1] + str(int(status[2:]) - 1)
+        if int(self.status[i][2:]) <= 0:
+            self.status.remove(self.status[i])
+    if stop:
+        return 0
+    return 1
+
+
+def understand_and_play(self, other, card):
+    if card[:3] == '110': # атака
+        other.hp -= int(card[4:])
+    elif card[:3] == '111': # вампиризм
+        other.hp -= int(card[4:])
+        self.hp += int(card[4:])
+    elif card[:2] == '10': # дебафф
+        other.status.append(f'{card[0]}{str(int(card[2])-1)}{card[4:]}')
+    elif card[:2] == '00':
+        self.status.append(f'{card[0]}{str(int(card[2])-1)}{card[4:]}')
+    elif card[:3] == '010': # лечение
+        self.hp = min(self.hp + int(card[4:]), self.max_hp)
+
+
+def translate(card):
+    st = ''
+    if card[:3] == '110':
+        st += f'Атака:{card[4:]}'
+    elif card[:3] == '111':
+        st += f'Вампиризм:{card[4:]}'
+    elif card[:2] == '10':
+        st += 'Дебафф'
+        if card[2] == '2':
+            st += f' заморозка:{card[4:]}'
+        if card[2] == '3':
+            st += f' горение:{card[4:]}'
+    elif card[:2] == '00':
+        st += 'Бафф'
+        if card[2] == '2':
+            st += f' исцеление:{card[4:]}'
+        if card[2] == '3':
+            st = 'Снятие эффектов'
+    elif card[:3] == '010':
+        st += f'Лечение:{card[4:]}'
+    if card[3] != '0':
+        st += f'/Перез.:{card[3]}'
+    return st
+
+
+def check_hp(self):
+    global monster, player
+    if self.hp <= 0:
+        if self == monster:
+            print('Монстр пал.')
+            monster = None
+        if self == player:
+            print('Игрок пал.')
+            player = None
+
+
+def make_choice(spisok=[]):
+    for i, x in enumerate(spisok):
+        print(f"{i+1}.{x}")
+    print()
+    choice = input('>>').lower()
+    while choice not in [str(x+1) for x in range(len(spisok))]:
+        choice = input('>>').lower()
+    return choice
+
+
+player = Player()
+monster = None
+room_status = 'бой'
+game_status = 'in_menu'
+game_difficulty = 1
+nturn = 1, 0
+room_n = 1
 while True:
-    if status == 'choose_room':
-        room_n += 1
-        if room_n == boss_room:
-            print('\x1b[33mПеред вами дверь босса.\x1b[0m')
-            sleep(1)
-            print('\x1b[36mЗаходи, как только собирёшься с мыслями.\x1b[0m')
-            sleep(1)
-            print(f"\x1b[36m\t1.Комната босса\x1b[0m")
-            p_choice = input()
-            while p_choice != '1':
-                p_choice = input()
-            print('\x1b[33mВы зашли в комнату босса.\x1b[0m')
-            status = 'in_monster_room'
-            m_name = 'босс'
+    print('\n' * 10)
+    if game_status == 'in_menu':
+        print('Меню')
+        choice = make_choice(['Играть', 'Правила', 'Настройки'])
+        print('\n'*3)
+        if choice in ['1', '2', '3', 'и', 'п', 'н']:
+            if choice in ['1', 'и']:
+                game_status = 'game'
+                room_status = 'entered'
+            elif choice in ['2', 'п']:
+                game_status = 'rules'
+            elif choice in ['3', 'н']:
+                game_status = 'settings'
+        continue
+    if game_status == 'rules':
+        print('Правила')
+        print('Игрок может сходить от 2 до 3 раз за ход.')
+        print('В игре есть Артефакты и Карты.')
+        print('Карты')
+        print('Карты - это активные умения.')
+        print('Карты ты используешь для атаки/лечения/баффа/дебаффа себя или врага.')
+        print('Карты можно получить с монстров')
+        print('Артефакты')
+        print('Артефакты - это пассивные умения.')
+        print('Артефакты используются/активны всегда. Вне битвы и в битве.')
+        print('Артефакты можно получить получая с монстров.')
+
+        choice = make_choice(['Назад'])
+        if choice == '1':
+            game_status = 'in_menu'
+        continue
+    if game_status == 'settings':
+        print('Настройки')
+        choice = make_choice(['Уровень сложности', 'Выход из игры', 'Назад'])
+        if choice in ['1', '2', '3', 'у', 'в', 'н']:
+            if choice in ['1', 'у']:
+                game_status = 'change_difficulty'
+            elif choice in ['2', 'в']:
+                exit()
+            elif choice in ['3', 'н']:
+                game_status = 'in_menu'
+        continue
+    if game_status == 'change_difficulty':
+        print('Смена сложности')
+        choice = make_choice(['Обычная', 'Сложная', 'Ад', 'Назад'])
+        if choice in ['1', '2', '3', '4', 'о', 'с', 'а', 'н']:
+            if choice in ['1', 'о']:
+                game_difficulty = 1
+            elif choice in ['2', 'с']:
+                game_difficulty = 2
+            elif choice in ['3', 'а']:
+                game_difficulty = 3
+            elif choice in ['4', 'н']:
+                game_status = 'in_menu'
+        continue
+    if room_status == 'entered':
+        print('Вы находитесь в комнате с монстром Слайм')
+        choice = make_choice(['Атаковать'])
+        if choice in ['1', 'а']:
+            if choice in ['1', 'а']:
+                room_status = 'fight'
+        continue
+    if room_status == 'fight':
+        if nturn[0] == 1:
+            monster = Monster()
+        if monster is None:
+            room_status = 'treasure'
+            nturn = (1, 0)
             continue
-        print("\x1b[33mПеред вами 3 двери.\x1b[0m")
-        sleep(0.5)
-        print("\x1b[36mВыбери куда хотите пойти.\x1b[0m")
-        sleep(0.5)
-        rooms = list()
-        for i in range(3):
-            if choice([1]*9+[0]) == 0:
-                rooms.append("Неизвестная комната")
-            else:
-                rooms.append("Комната с монстром")
-        print(f"\x1b[36m\t1.{rooms[0]}\n\t2.{rooms[1]}\n\t3.{rooms[2]}\x1b[0m")
-        p_choice = int(input())
-        while p_choice not in [1, 2, 3]:
-            p_choice = int(input())
-        print("<"+"-"*30+">")
-        print(f"\x1b[33m\tВы вошли в комнату {room_n}\x1b[0m")
-        if rooms_choices[rooms[p_choice - 1]] == 1:
-            status = 'in_monster_room'
-        elif rooms_choices[rooms[p_choice - 1]] == 2:
-            status = 'in_unknown_room'
-        print("<"+"-"*30+">")
-        sleep(2)
-    if status == 'in_unknown_room':
-        print('\x1b[33mВы вошли в неизвестную комнату.\x1b[0m')
-        sleep(1)
-        print('\x1b[33mПеред вами стоит книжка застраховки\x1b[0m')
-        sleep(0.5)
-        print('\x1b[36mЗастраховать ваше тело?\x1b[0m')
-        p_choice = input()
-        while p_choice.lower() not in ['да', 'нет']:
-            p_choice = input()
-        if p_choice.lower() == 'да':
-            print('\x1b[33mВаше тело ощущает силу из-за роста уверенности в своём благополучии!\x1b[0m')
-            sleep(1)
-            print('\x1b[36mВы получили +5 к хп; +2 к силе; +1 к лечению\x1b[0m')
-            player['max_hp'], player['hp'] = player['max_hp'] + 5, player['max_hp'] + 5
-            player['dmg'], player['heal'] = player['dmg'] + 2, player['heal'] + 1
-            status = 'choose_room'
-            sleep(1.5)
-        else:
-            print('\x1b[33mВы отказались застраховывать ваше тело в какой-то книжке\x1b[0m')
-        print("<"+"-"*30+">")
-    if status == 'in_monster_room':
-        sleep(1)
-        print(f"\x1b[33mПеред вами {m_name}!\x1b[0m")
-        sleep(1)
-        print("\x1b[33mОн нападает на вас!\x1b[0m")
-        status = 'in_monster_fight'
-        mp = monster_prototype
-        if m_name == 'босс':
-            mp["max_hp"] = 7 * room_n
-            mp["hp"] = mp["max_hp"]
-            mp["dmg"] = 1 * room_n + 3
-            mp['heal'] += 3
-        else:
-            mp["max_hp"] = 5 * room_n
-            mp["hp"] = mp["max_hp"]
-            mp["dmg"] = 1 * room_n + 1
-        monster = mp.copy()
-        sleep(2)
-    if status == 'in_monster_fight':
-        print("\x1b[33mВы ходите.\x1b[0m")
-        sleep(1)
-
-        l1, l11 = len("Игрок|"), len(m_name)
-        l2, l12 = len(f"Хп: {player['hp']}/{player['max_hp']}|"), len(f"Хп: {monster['hp']}/{monster['max_hp']}")
-        l3, l13 = len("Урон: 5|"), len("Урон: 2")
-        l4, l14 = len("Лечение: 3|"), len("Лечение: 2")
-        p_hp = f"||Хп: {player['hp']}/{player['max_hp']}{' ' * (l4 - l2)}||"
-        m_hp = f"||Хп: {monster['hp']}/{monster['max_hp']}{' ' * (l14 - l12)}||"
-        p_dmg = f"||Сила: {player['dmg']}{' ' * (l4 - l3)}||"
-        m_dmg = f"||Сила: {monster['dmg']}{' ' * (l14 - l13)}||"
-
-        print("\x1b[33m", '=' * (len('||Лечение: 3||\t||Лечение: 2||') + 1), "\x1b[0m", sep='')
-        print(f"\x1b[36m||Игрок{' ' * (l4 - l1)}||\x1b[0m\t\x1b[31m||{m_name.capitalize()}{' ' * (l14 - l11)}||\x1b[0m")
-        print(f"\x1b[36m{p_hp}\x1b[0m\t\x1b[31m{m_hp}\x1b[0m")
-        print(f"\x1b[36m{p_dmg}\x1b[0m\t\x1b[31m{m_dmg}\x1b[0m")
-        print(f"\x1b[36m||Лечение: {player['heal']}||\x1b[0m\t\x1b[31m||Лечение: {monster['heal']}||\x1b[0m")
-        print("\x1b[33m", '=' * (len('||Лечение: 3||\t||Лечение: 2||') + 1), "\x1b[0m", sep='')
-
-        print("\x1b[36mВыбирите одно из действий:\x1b[0m")
-        print(f"\x1b[36m\t1.Атаковать {m_name}а(x1)\n\t2.Лечить себя(+{player['heal']}хп)\x1b[0m")
-        p_choice = int(input())
-        while p_choice not in [1, 2]:
-            p_choice = int(input())
-        if p_choice == 1:
-            monster['hp'] -= player['dmg']
-            sleep(0.5)
-            print(f'\x1b[33mВы атаковали {m_name}а\x1b[0m')
-            if monster["hp"] <= 0:
-                sleep(1)
-                print("<"+"-"*30+">")
-                print(f"\x1b[33mВы убили {m_name}а!\x1b[0m")
-                print("<"+"-"*30+">")
-                sleep(1)
-                if m_name == 'босс':
-                    sleep(1)
-                    print("<" + "-" * 30 + ">")
-                    print('\x1b[33mПоздравляем вас, о великий герой, вы победили зло!\x1b[0m')
-                    print("<" + "-" * 30 + ">")
-                    sleep(1)
-                    print('\x1b[36mХотите ли вы переиграть?\x1b[0m')
-                    p_choice = input()
-                    if p_choice in ['да', 'конечно', 'давай']:
-                        monster_prototype = monster_prototype_n
-                        monster = monster_prototype_n
-                        player = player_n
-                        status = 'choose_room'
-                        m_name = 'монстр'
-                        room_n = 0
-                        print("<" + "-" * 60 + ">")
-                        print("<" + "-" * 60 + ">")
-                        print("<" + "-" * 60 + ">")
-                        continue
-                status = 'choose_room'
-                monster_killed = True
-                sleep(1)
-                print('\x1b[33mВы ощущаете приток сил после великолепной победы!\x1b[0m')
-                sleep(1)
-                print('\x1b[33mВы получили +3 к хп; +1 к силе\x1b[0m')
-                player['max_hp'], player['hp'] = player['max_hp'] + 3, player['hp'] + 3
-                player['dmg'] = player['dmg'] + 1
-                sleep(1.5)
-        elif p_choice == 2:
-            if player['hp'] + player['heal'] <= player["max_hp"]:
-                player['hp'] = player['hp'] + player['heal']
-            else:
-                player["hp"] = player["max_hp"]
-            print("\x1b[33mВы вылечили себя\x1b[0m")
-        if not monster_killed:
-            if (monster["hp"] - player['dmg'] <= 0) and \
-                    (min(monster["hp"] + monster["heal"], monster['max_hp']) - player['dmg'] > 0) \
-                    and choice([1]*17+[0]*3) == 1:
-                sleep(1)
-                print(f"\x1b[31mМонстр решил вылечить себя на {monster['heal']}хп.\x1b[0m")
-                sleep(2)
-                monster['hp'] += monster['heal']
-                if monster['hp'] > monster['max_hp']:
-                    monster['hp'] = monster['max_hp']
-                print("<" + "-" * 30 + ">")
-            else:
-                print(f"\x1b[31mМонстр решил атаковать вас!\x1b[0m")
-                sleep(1)
-                print(f"\x1b[31mВы потеряли {monster['dmg']}хп.\x1b[0m")
-                sleep(2)
-                print("<" + "-" * 30 + ">")
-                player['hp'] -= monster['dmg']
-            sleep(1)
-            if player['hp'] <= 0:
-                print("<" + "-" * 30 + ">")
-                print('\x1b[31mВы проиграли!\x1b[0m')
-                print("<" + "-" * 30 + ">")
-                sleep(2)
-                print('\x1b[33mХотите попробовать снова?\x1b[0m')
-                p_choice = input()
-                if p_choice.lower() in ['да', 'давай', 'конечно']:
-                    monster_prototype = monster_prototype_n
-                    monster = monster_prototype_n
-                    player = player_n
-                    m_name = 'монстр'
-                    status = 'choose_room'
-                    room_n = 0
-                    print("<" + "-" * 60 + ">")
-                    print("<" + "-" * 60 + ">")
-                    print("<" + "-" * 60 + ">")
-                else:
-                    print("<" + "-" * 30 + ">")
-                    print('\x1b[33mИгра закончена\x1b[0m')
-                    print("<" + "-" * 30 + ">")
-                    break
-        else:
-            monster_killed = False
+        if nturn[1] == 0:
+            player.turn()
+            nturn = nturn[0], 1
+        if nturn[1] == 1:
+            monster.turn()
+            nturn = nturn[0] + 1, 0
+        continue
+    if room_status == 'treasure':
+        choice = make_choice(['Card', 'Artefact'])
+        continue
