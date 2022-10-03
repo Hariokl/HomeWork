@@ -1,14 +1,24 @@
-for i in range(10):
-    print(f"\x1b[3{i}m Magenta{i} \x1b[0m")
-    "\x1b[33m \x1b[0m"
-l1, l11 = len("Игрок|"), len("Монстр")
-l2, l12 = len("Хп: 10|"), len("Хп: 20")
-l3, l13 = len("Урон: 5|"), len("Урон: 2")
-l4, l14 = len("Лечение: 3|"), len("Лечение: 2")
-print("\x1b[33m", '=' * (len('||Лечение: 3||\t||Лечение: 2||') + 1), "\x1b[0m", sep='')
-print(f"\x1b[36m||Игрок{' '*(l4-l1)}||\x1b[0m\t\x1b[31m||Монстр{' '*(l14-l11)}||\x1b[0m")
-print(f"\x1b[36m||Хп: 10{' '*(l4-l2)}||\x1b[0m\t\x1b[31m||Хп: 20{' '*(l14-l12)}||\x1b[0m")
-print(f"\x1b[36m||Урон: 5{' '*(l4-l3)}||\x1b[0m\t\x1b[31m||Урон: 2{' '*(l14-l13)}||\x1b[0m")
-print(f"\x1b[36m||Лечение: 3||\x1b[0m\t\x1b[31m||Лечение: 2||\x1b[0m")
-print("\x1b[33m", '=' * (len('||Лечение: 3||\t||Лечение: 2||') + 1), "\x1b[0m", sep='')
-print([1]*9+[0])
+def make_choice(self):
+    for i, x in enumerate(self.cards):
+        if i not in [y[0] for y in self.cards_in_reload]:
+            understand_and_play(self, player)
+            r = translate_to_fight(x)
+            print('Монстр'+r[0]+'.', r[1])
+            sleep(1)
+
+
+def check_hp(self):
+    if self.hp <= 0:
+        if self == monster:
+            print('Монстр пал.')
+            monster = None
+        if self == player:
+            print('Игрок пал.')
+            player = None
+    
+    
+def translate_to_fight(card):
+    if card[:3] == '110':
+        return 'атакует вас', f'Вы потеряли {card[4:]}хп'
+    if card[:3] == '011':
+        return 'лечится', f'Монстр вылеил {card[4:]}хп'
