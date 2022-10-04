@@ -23,8 +23,7 @@ class Player:
         self.status = []
 
     def turn(self):
-        print('Ваша очередь')
-        print(self.hp)
+        print('\tВаша очередь')
 
         check_hp(self)
 
@@ -36,6 +35,7 @@ class Player:
         while True:
             if monster.hp <= 0:
                 return
+            print(info())
             choice = self.make_choice([self.make_beautiful(translate(x), x) for x in self.cards])
             while choice != '0':
                 if choice in [str(x + 1) for x in range(len(self.cards))] and choice.isdigit():
@@ -240,6 +240,17 @@ def make_choice(spisok=[]):
     while choice not in [str(x+1) for x in range(len(spisok))]:
         choice = input('>>').lower()
     return choice
+
+
+def info():
+    p = ['Игрок', f"Хп:{str(player.hp)}/{str(player.max_hp)}"]
+    m = ['Моснтр', f"Хп:{str(monster.hp)}/{str(monster.max_hp)}"]
+    st = '='*20 + '\n'
+    for i, x in enumerate(p):
+        r = x + " " * (10 - len(x)+4) + m[i]
+        st += r + '\n'
+    st += '='*20
+    return st
 
 
 player = Player()
