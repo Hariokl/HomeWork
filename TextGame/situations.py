@@ -19,7 +19,8 @@ def create_ways(n, ns="1"):
     return Way(ns, *[create_ways(n-1, ns+str(i+1)) for i in range(2)])
 
 
-rooms = 5
+rooms = 10
+room_n = 0
 create_ways(rooms)
 destination = "1" + "".join(str(randint(1, 2)) for _ in range(rooms-1))
 cur_pos = "1"
@@ -27,8 +28,23 @@ cur_way = Way.ways_class_dict[cur_pos]
 playing = True
 
 while playing:
-
     print("\n"*10)
+    if room_n == 0:
+    	choices = [f"\t{i+1}. {x}" for i, x in enumerate(("Начать игру", "История", "Сложность", "Выйти"))]
+    	player_chose = input(">>>")
+        while player_chose.lower() not in [str(i+1) for i in range(len(choices) + (1 if len(cur_pos) > 1 else 0))] and \
+                player_chose.lower() not in [x.split()[-1].lower() for x in choices]:
+            player_chose = input(">>>")
+        if player_chose.lower() in ["1", "начать", "начать игру"]:
+        	room_n = 1
+        elif player chose.lower() in ["2", "история"]:
+        	print("\n"*10)
+        	print("Вы съели у АБ его шаурму и об этом он узнаёт. Разгневанный АБ бежит за вами, и вы с ним попадаете в лабиринт. Дойдите до конца, чтобы получить шаурму на выходе лабиринта. Но помните: у вас не так много времени-60 секунд-за это время АБ успеет добежать до вас.")
+            input("\n\n\n>>>")
+        	continue
+    	continue
+    	
+    print(f"Комната: {room_n}")
     print("Выберите путь:")
     choices = [f"\t{i+1}. {x}" for i, x in enumerate(("Налево", "Направо")) if cur_pos+str(i+1) in Way.ways_class_dict]
     if len(choices) != 0:
@@ -48,6 +64,8 @@ while playing:
         cur_pos += "2"
     else:
         cur_pos = cur_pos[:-1]
+        room_n -= 2
+    room_n += 1
     cur_way = Way.ways_class_dict[cur_pos]
 
     if len(cur_pos) == rooms:
@@ -57,4 +75,3 @@ while playing:
             playing = False
         else:
             print("Перед вами тупик. Может, попробуете вернуться?")
-
