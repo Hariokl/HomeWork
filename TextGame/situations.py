@@ -21,7 +21,7 @@ def create_ways(n, ns="1"):
 
 rooms = 10
 room_n = 0
-create_ways(rooms)
+time = 60
 destination = "1" + "".join(str(randint(1, 2)) for _ in range(rooms-1))
 cur_pos = "1"
 cur_way = Way.ways_class_dict[cur_pos]
@@ -29,19 +29,41 @@ playing = True
 
 while playing:
     print("\n"*10)
+    if room_n == -1:
+    	print("Выберите сложность игры:")
+    	choices = [f"\t{i+1}. {x}" for i, x in enumerate(("Для АБ", "Для лохов", "Лёгкая", "Назад"))]
+    	player_chose = input("\n\n\n>>>")
+    	while player_chose.lower() not in [str(i+1) for i in range(len(choices) + (1 if len(cur_pos) > 1 else 0))]+["аб", "лох", "лохов"] and \
+                player_chose.lower() not in [x.split()[-1].lower() for x in choices]:
+            player_chose = input(">>>")
+        if player_chose.lower() in ["для аб", "1", "аб"]:
+        	rooms = 3
+        elif player_chose.lower() in ["для лохов", "лохов", "1", "лох"]:
+        	rooms = 5
+        elif player_chose.lower() in ["4", "назад"]:
+        	room_n = 0
+        else:
+        	rooms = 10
+    
     if room_n == 0:
     	choices = [f"\t{i+1}. {x}" for i, x in enumerate(("Начать игру", "История", "Сложность", "Выйти"))]
-    	player_chose = input(">>>")
+    	print("\n".join(choices))
+    	player_chose = input("\n\n\n>>>")
         while player_chose.lower() not in [str(i+1) for i in range(len(choices) + (1 if len(cur_pos) > 1 else 0))] and \
                 player_chose.lower() not in [x.split()[-1].lower() for x in choices]:
             player_chose = input(">>>")
         if player_chose.lower() in ["1", "начать", "начать игру"]:
         	room_n = 1
+        	create_ways(rooms)
         elif player chose.lower() in ["2", "история"]:
         	print("\n"*10)
         	print("Вы съели у АБ его шаурму и об этом он узнаёт. Разгневанный АБ бежит за вами, и вы с ним попадаете в лабиринт. Дойдите до конца, чтобы получить шаурму на выходе лабиринта. Но помните: у вас не так много времени-60 секунд-за это время АБ успеет добежать до вас.")
             input("\n\n\n>>>")
         	continue
+        elif player_chose.lower() in ["3", "сложность"]:
+        	room_n = -1
+        else:
+        	exit()
     	continue
     	
     print(f"Комната: {room_n}")
