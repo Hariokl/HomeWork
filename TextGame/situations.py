@@ -1,4 +1,4 @@
-
+from time import perf_counter
 from random import randint
 
 
@@ -22,7 +22,9 @@ def create_ways(n, ns="1"):
 
 rooms = 10
 room_n = 0
-time = 60
+ab_room_n = 0
+ab_room_v = 2, 10
+ab_v = 2
 cur_pos = "1"
 cur_way = None
 playing = True
@@ -68,6 +70,8 @@ while playing:
         continue
         
     print(f"Комната: {room_n}")
+
+    print(f"Время на выбор: {ab_room_v[1]}")
     print("Выберите путь:")
     choices = [f"\t{i+1}. {x}" for i, x in enumerate(("Налево", "Направо")) if cur_pos+str(i+1) in Way.ways_class_dict]
     if len(choices) != 0:
@@ -75,12 +79,20 @@ while playing:
     if len(cur_pos) > 1:
         print(f"\t{len(choices) + 1}. Вернуться")
     print("\n"*4)
-
+    start = perf_counter()
     player_chose = input(">>>")
     while player_chose.lower() not in [str(i+1) for i in range(len(choices) + (1 if len(cur_pos) > 1 else 0))] and \
             player_chose.lower() not in [x.split()[-1].lower() for x in choices] + \
             (["вернуться"] if len(cur_pos) > 1 else []):
         player_chose = input(">>>")
+    end = perf_counter()
+    if end - start >= ab_room_v[1] or room_n - ab_room_n >= ab_room_v[0]:
+        ab_room_n += 1
+    if ab_room_n == room_n:
+        print("Вас поймал АБ и приготовил из вас шаурму.")
+        print("Конец.")
+        input()
+        room_n = 0
     if player_chose.lower() in ["1", "налево", "лево"] and len(choices) == 2:
         cur_pos += "1"
     elif player_chose.lower() in ["2", "направо", "право"] and len(choices) == 2:
@@ -98,3 +110,4 @@ while playing:
             playing = False
         else:
             print("Перед вами тупик. Может, попробуете вернуться?")
+
