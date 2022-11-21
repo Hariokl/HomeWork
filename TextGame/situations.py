@@ -3,30 +3,23 @@ from random import randint
 
 
 class Way:
-
-    left = ["1 + 1 - 2 + 1", "2 - 1", "sin(90*)", "sin(-270*)", "10 / 2 * 10 // 25 - 1", "У Васи три яблока в правой руке и два в левой.\nУ него отняли два яблока из правой руки. " "В какой руке больше яблок?", "6! / 720", "30 + 1 / 1 - 1 - 31 + 2"]
-
-    right = ["(1 + 2 + 3 + 4) / 5", "cos(90*) + 2", "sin(-270*) + sin(90*)", "10 / 2 * 10 // 25", "2 + 5 - 3 - 2", "100 // 10 - 5 + 16 - 27 - 4", "Левый спортсмен бегает быстрее правого на 13 км/час.\n" "Кто из них придёт позже, если оба начанали одновременно?", "Шарик + Банан = 3 Банана\n" "Шарик = 4\nЧему равен Банан?"]
-
-    unknown = ["У Васи три яблока в правой руке и два в левой.\n" "У него украли яблоки из сумки. Как зовут отца Пети?", "1 + 1 - 2 + 1 - 5", "tg(90*)", "100 // 10 - 5 + 16 - 27 - 10", "cos(90*) + 4"]
-
+    left = ["1 + 1 - 2 + 1", "2 - 1", "sin(90*)", "sin(-270*)", "10 / 2 * 10 // 25 - 1", "У Васи три яблока в правой руке и два в левой.\nУ него отняли два яблока из правой руки. " "В какой руке больше яблок?", "6! / 720", "30 + 1 / 1 - 1 - 31 + 2"]
+    right = ["(1 + 2 + 3 + 4) / 5", "cos(90*) + 2", "sin(-270*) + sin(90*)", "10 / 2 * 10 // 25", "2 + 5 - 3 - 2", "100 // 10 - 5 + 16 - 27 - 4", "Левый спортсмен бегает быстрее правого на 13 км/час.\n" "Кто из них придёт позже, если оба начанали одновременно?", "Шарик + Банан = 3 Банана\n" "Шарик = 4\nЧему равен Банан?"]
+    unknown = ["У Васи три яблока в правой руке и два в левой.\n" "У него украли яблоки из сумки. Как зовут отца Пети?", "1 + 1 - 2 + 1 - 5", "tg(90*)", "100 // 10 - 5 + 16 - 27 - 10", "cos(90*) + 4"]
     
-
-    ways = dict()
+    ways = dict()
     ways_class_dict = dict()
 
     def __init__(self, n, *ways):
-
-        ways_to_d = {True: (Way.left, Way.right), False: (Way.unknown, Way.unknown)}
+        ways_to_d = {True: (Way.left, Way.right), False: (Way.unknown, Way.unknown)}
         self.ways = ways
         self.n = n
         self.way_to_d = None
-
-        self.zad = ways_to_d[n == destination[:len(n)]][destination[len(n)]]
-
-        self.zad = self.zad[randint(0, len(self.zad))]
-
-            
+        self.zad = None
+        if len(n) != len(destination):
+            self.zad = ways_to_d[n == destination[:len(n)]][int(destination[len(n)])-1]
+            self.zad = self.zad[randint(0, len(self.zad) - 1)]
+            
         Way.ways[n] = [way.n for way in ways]
         Way.ways_class_dict[n] = self
 
@@ -82,8 +75,9 @@ while playing:
         if player_chose.lower() in ["1", "начать", "начать игру"]:
             room_n = 1
             destination = "1" + "".join(str(randint(1, 2)) for _ in range(rooms - 1))
-
-            create_ways(rooms)
+            create_ways(rooms)
+            cur_pos = "1"
+            cur_way = Way.ways_class_dict[cur_pos]
         elif player_chose.lower() in ["2", "история"]:
             print("\n" * 10)
             print("""Вы съели у АБ его шаурму и об этом он узнаёт. 
@@ -100,8 +94,7 @@ while playing:
 
     print(f"Комната: {room_n}")
     print(f"Время на выбор: {ab_room_v[1]}")
-
-    zad = cur_way.zad
+    zad = cur_way.zad
     print(f"Задача: {zad}")
     print("Выберите путь:")
     choices = [f"\t{i + 1}. {x}" for i, x in enumerate(("Налево", "Направо")) if
@@ -147,4 +140,3 @@ while playing:
             playing = False
         else:
             print("Перед вами тупик. Может, попробуете вернуться?")
-
