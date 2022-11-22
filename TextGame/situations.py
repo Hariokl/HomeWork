@@ -39,6 +39,8 @@ def create_ways(n, ns="1"):
 
 
 class Game:
+    def __init__(self):
+        self.bag = []
 
     def run(self):
         rooms = 10
