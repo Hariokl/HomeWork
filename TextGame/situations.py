@@ -109,6 +109,7 @@ class Game:
             print(f"Комната: {room_n}")
             print(f"Время на выбор: {ab_room_v[1]}")
             zad = cur_way.zad
+            zad = "Вы где-то лоханулись" if zad is None else zad
             print(f"Задача: {zad}")
             print("Выберите путь:")
             choices = [f"\t{i + 1}. {x}" for i, x in enumerate(("Налево", "Направо")) if
