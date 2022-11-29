@@ -2,6 +2,17 @@ from time import perf_counter
 from random import randint
 
 
+class Player:
+    def __init__(self):
+        self.cur_pos = "1"
+        self.cur_way = None
+        self.room_n = 0
+        self.bag = {"Шаурма": 0}
+
+    def get_item(self, item):
+        self.bag[item] += 1
+
+
 class Way:
     destination = None
     left = ["1 + 1 - 2 + 1", "2 - 1", "sin(90*)", "sin(-270*)", "10 / 2 * 10 // 25 - 1",
@@ -43,16 +54,48 @@ class Game:
         self.bag = []
 
     def run(self):
+        player = Player()
         rooms = 10
         room_n = 0
         ab_room_n = 0
-        ab_room_v = 2, 10
+        ab_room_v = 3, 10
         ab_v = 2
         cur_pos = "1"
         cur_way = None
         playing = True
         while playing:
             print("\n" * 10)
+            if player.bag["Шаурма"] > 0 and room_n == ab_room_n:
+                print("Перед вами АБ. Что будете делать?")
+                print("\n".join([f"\t{i}. {x}" for i, x in
+                                 enumerate(["Посмотреть рюкзак", "Дать Священную Шаурму"])]))
+                player_chose = input(">>>").lower()
+                if player_chose in ["1", "посмотреть", "посмотреть рюкзак"]:
+                    print("Рюкзак: " + ''.join([f"{x}x{player.bag[x]}" for x in player.bag]))
+                    input()
+                    continue
+                elif player_chose in ["2", "дать", "дать священную шаурму", "дать священную"]:
+                    pass
+                else:
+                    player.bag["Шаурма"] = 0
+                    continue
+                print(
+                    "Вы отдаёте АБ Шаурму. Но неожиданно для вас,"
+                    "\nАБ останавливается перед великолепием шаурмы. Он ещё долго стоит и пускает слюни. "
+                    "\nВы решаетесь взять шаурму и протянуть её ему. Он съедает её за секунды и довольный прощает вас. "
+                    "\n\tВы выжили!")
+                print("Конец.")
+                input()
+                room_n = 0
+                player.bag["Шаурма"] = 0
+                continue
+            elif player.bag["Шаурма"] == 0 and room_n == ab_room_n != 0:
+                print("Вас поймал АБ и приготовил из вас шаурму.")
+                print("Конец.")
+                input()
+                room_n = 0
+                player.bag["Шаурма"] = 0
+                continue
             if room_n == -1:
                 print("Выберите сложность игры:")
                 choices = [f"\t{i + 1}. {x}" for i, x in
@@ -127,9 +170,10 @@ class Game:
                     (["вернуться"] if len(cur_pos) > 1 else []):
                 player_chose = input(">>>")
             end = perf_counter()
+            print(end - start, room_n - ab_room_n)
             if end - start >= ab_room_v[1] or room_n - ab_room_n >= ab_room_v[0]:
                 ab_room_n += 1
-            if ab_room_n == room_n:
+            if ab_room_n == room_n and player.bag["Шаурма"] == 0:
                 print("Вас поймал АБ и приготовил из вас шаурму.")
                 print("Конец.")
                 input()
@@ -147,14 +191,17 @@ class Game:
 
             if len(cur_pos) == rooms:
                 if cur_pos == Way.destination:
-                    print("Вы добежали до конца лабиринта и перед вами летает священная шаурма. "
-                          "\nСзади вас вы слышите звуки злого АБ и уже готовы были смириться со своей погибелью. Но неожиданно для вас,"
-                          "\nАБ останавливается перед великолепием шаурмы. Он ещё долго стоит и пускает слюни. "
-                          "\nВы решаетесь взять шаурму и протянуть её ему. Он съедает её за секунды и довольный прощает вас. "
-                          "\n\tВы выжили!")
-                    print("Конец.")
-                    playing = False
-                else:
+                    print("Перед вами что-то летает. Взять?")
+                    print("\n".join([f"\t{i}. {x}" for i, x in enumerate(["Взять", "Вернуться"])]))
+                    player_chose = input(">>>").lower()
+                    if player_chose in ["1", "взять"]:
+                        player.get_item("Шаурма")
+                    else:
+                        room_n -= 1
+                        cur_pos = cur_pos[:-1]
+                        cur_way = Way.ways_class_dict[cur_pos]
+                ###########################################################
+                elif cur_pos != Way.destination:
                     print("Перед вами тупик. Может, попробуете вернуться?")
 
 
