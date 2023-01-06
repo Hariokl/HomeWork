@@ -7,6 +7,8 @@ import pygame as pg
 class Map(pg.sprite.Sprite):
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
+        st.map_settings("map_1")
+
         self.map_tiles = st.map_tiles
         self.i = st.available_i[0]
         st.available_i.remove(self.i)
