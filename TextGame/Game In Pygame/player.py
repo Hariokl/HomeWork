@@ -9,7 +9,7 @@ class Player(pg.sprite.Sprite):
 
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.Surface((st.TILES_WH // 1.5, st.TILES_WH // 1.5))
+        self.image = pg.Surface((st.TILES_WH * 1.5, st.TILES_WH * 1.5))
         self.image.fill((20, 20, 250))
         self.rect = self.image.get_rect()
         self.rect.center = st.WIDTH // 2, st.HEIGHT // 2
