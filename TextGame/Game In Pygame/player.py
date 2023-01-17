@@ -9,12 +9,12 @@ class Player(pg.sprite.Sprite):
 
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.Surface((st.TILES_WH * 1.5, st.TILES_WH * 1.5))
+        self.image = pg.Surface((st.TILES_WH // 1.5, st.TILES_WH // 1.5))
         self.image.fill((20, 20, 250))
         self.rect = self.image.get_rect()
         self.rect.center = st.WIDTH // 2, st.HEIGHT // 2
 
-        self.weapon = {"speed": 0, "speed_speed": 1 / st.FPS * 4, "damage": 5}
+        self.weapon = {"speed": 0, "speed_speed": 1 / st.FPS * 3, "damage": 5}
 
         self.running = 0, 0
         self.shoot_bool = False
@@ -34,7 +34,7 @@ class Player(pg.sprite.Sprite):
             st.positions += (x, y)
             return
         # preparations
-        v = max(st.TILES_WH // 20, 1)
+        v = max(st.TILES_WH * 3 // st.FPS, 1)
         offset = st.TILES_WH // 10 // 1.5
         x, y = -x, -y
 
@@ -83,5 +83,5 @@ class Player(pg.sprite.Sprite):
         vy = y / abs(x ** 2 + y ** 2) ** 0.5 * speed
 
         self.weapon["speed"] = 1
-        projectile.Projectile("linear", (st.WIDTH // 2, st.HEIGHT // 2), (vx, vy),
+        projectile.Projectile("sinusoida", (st.WIDTH // 2, st.HEIGHT // 2), (vx, vy),
                               st.TILES_WH * 5, self.weapon["damage"])

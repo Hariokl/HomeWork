@@ -5,7 +5,7 @@ import numpy as np
 def init():
     global WIDTH, HEIGHT, TILES_WH, FPS, display, positions, all_sprites, max_i, available_i, enemies_rects
     WIDTH, HEIGHT = 640*1.5, 480*1.5
-    TILES_WH = WIDTH // 10 // 1.8
+    TILES_WH = max(WIDTH, HEIGHT) // 10 // 1.2
     FPS = 60
     enemies_rects = list()
 

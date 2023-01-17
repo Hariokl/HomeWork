@@ -5,7 +5,7 @@ import pygame as pg
 class Enemy(pg.sprite.Sprite):
     def __init__(self, pos):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.Surface((st.TILES_WH * 1.5, st.TILES_WH * 1.5))
+        self.image = pg.Surface((st.TILES_WH // 1.5, st.TILES_WH // 1.5))
         self.image.fill((250, 100, 100))
         self.rect = self.image.get_rect()
         self.rect.topleft = pos

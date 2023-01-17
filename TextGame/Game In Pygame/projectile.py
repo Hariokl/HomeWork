@@ -1,7 +1,7 @@
 import pygame as pg
 import settings as st
 
-from math import sin
+from math import sin, pi
 
 
 class Projectile(pg.sprite.Sprite):
@@ -72,16 +72,27 @@ class Projectile(pg.sprite.Sprite):
 
     # just movement
     def linear(self):
-        st.positions[self.i] += self.v
+        self.x += st.TILES_WH / 130
+        xs = self.x
+        ys = 0
+        self.move(xs, ys)
 
     # not done yet, this is pretty difficult :(
+    # Update: I did it! I now understand how to implement any function to movement, and it will work :D
     def sinusoida(self):
-        x = st.positions[self.i][0] + self.v[0]
-        y = sin(x)
+        self.x += st.TILES_WH / 130
+        xs = self.x
+        ys = 4 * sin(xs / 5)
+        self.move(xs, ys)
 
-        # x = x * self.v[0] - y * self.v[1]
-        # y = y * self.v[0] + x * self.v[1]
+    # This one is to flip the coordinate system around its origin (0; 0),
+    # and using this func I can add any math function as movement.
+    # I was not the first one to come up with the solution to rotate coordinate-system,
+    # but I MYSELF tried to come up with solution using math. And I did!! Moreover, It's the right one!!
+    # All it took for me is 2 lessons.
+    def move(self, xs, ys):
+        x = xs * self.v[0] - ys * self.v[1]
+        y = ys * self.v[0] + xs * self.v[1]
 
-        st.positions[self.i] = x * self.v[0] - y * self.v[1], y * self.v[0] + x * self.v[1]
-        print(self.v, x, y, st.positions[self.i])
+        st.positions[self.i] = x + self.start_pos[0], y + self.start_pos[1]
 
