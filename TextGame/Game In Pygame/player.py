@@ -1,7 +1,7 @@
 import pygame as pg
 
-import projectile
 import settings as st
+from weapon import Weapon
 
 
 class Player(pg.sprite.Sprite):
@@ -14,7 +14,7 @@ class Player(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = st.WIDTH // 2, st.HEIGHT // 2
 
-        self.weapon = {"speed": 0, "speed_speed": 1 / st.FPS * 3, "damage": 5}
+        self.weapon = Weapon()
 
         self.running = 0, 0
         self.shoot_bool = False
@@ -23,10 +23,7 @@ class Player(pg.sprite.Sprite):
         Player.players.append(self)
 
     def update(self):
-        if self.weapon["speed"] > 0:
-            self.weapon["speed"] -= self.weapon["speed_speed"]
-        else:
-            self.weapon["speed"] = 0
+        self.weapon.update()
 
     def move(self, x, y, with_speed=True):
         # for teleportation which I still haven't started doing :D
@@ -75,13 +72,5 @@ class Player(pg.sprite.Sprite):
         st.positions += ((x - ox) * v * rx, (y - oy) * v * ry)
 
     def shoot(self):
-        mouse_pos = pg.mouse.get_pos()
-        speed = st.TILES_WH // 10
-        x, y = (mouse_pos[0] - st.WIDTH // 2), (mouse_pos[1] - st.HEIGHT // 2)
+        self.weapon.shoot()
 
-        vx = x / abs(x ** 2 + y ** 2) ** 0.5 * speed
-        vy = y / abs(x ** 2 + y ** 2) ** 0.5 * speed
-
-        self.weapon["speed"] = 1
-        projectile.Projectile("sinusoida", (st.WIDTH // 2, st.HEIGHT // 2), (vx, vy),
-                              st.TILES_WH * 5, self.weapon["damage"])

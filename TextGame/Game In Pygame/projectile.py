@@ -30,6 +30,7 @@ class Projectile(pg.sprite.Sprite):
     def update(self):
         self.movement()
         self.check_hitted()
+        print([x1 - x2 for x1, x2 in zip(st.positions[self.i], self.rect.center)])
         self.rect.center = st.positions[self.i]
 
     def check_hitted(self):
